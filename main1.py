@@ -11,14 +11,13 @@ pygame.display.set_caption("Simple Sphere Ray Tracing")
 
 # 색상 정의
 BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 
 # 구 정의
 sphere_center = np.array([400, 300, 0])  # 구의 중심
 sphere_radius = 100  # 구의 반지름
 
-# 조명 설정
+# 광원 위치 설정
 light_pos = np.array([200, 100, -100])  # 광원 위치
 
 # 벡터 정규화 함수 (normalize)
@@ -41,7 +40,7 @@ def ray_sphere_intersection(ray_origin, ray_direction, sphere_center, sphere_rad
     else:
         t1 = (-b - np.sqrt(discriminant)) / (2.0 * a)
         t2 = (-b + np.sqrt(discriminant)) / (2.0 * a)
-        return t1 if t1 < t2 else t2  # 더 가까운 충돌점 반환
+        return t1 if t1 > 0 else t2  # 양수 t 값 중 더 가까운 충돌점 반환
 
 # 메인 루프
 running = True
@@ -50,19 +49,23 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
+    # 마우스 위치를 기반으로 카메라 위치 업데이트
+    mouse_x, mouse_y = pygame.mouse.get_pos()
+    camera_pos = np.array([mouse_x, mouse_y, -200])  # 카메라 위치를 마우스에 따라 이동
+
     # 화면 초기화
     screen.fill(BLACK)
-    mouse_x, mouse_y = pygame.mouse.get_pos()
-    light_pos = np.array([mouse_x, mouse_y, -110])  # 광원의 z 위치 고정
 
     # 각 픽셀에 대해 레이 캐스팅
-    step = 4 # 픽셀 간격 (높일수록 해상도 줄고 속도 빨라짐)
+    step = 4  # 픽셀 간격 (높일수록 해상도 줄고 속도 빨라짐)
 
-    for x in range(width//2 - sphere_radius, width//2 + sphere_radius, step):
-        for y in range(height//2 - sphere_radius, height//2 + sphere_radius, step):
-            # 나머지 코드는 동일
-            ray_origin = np.array([x, y, -200])
-            ray_direction = np.array([0, 0, 1])
+    for x in range(0, width, step):
+        for y in range(0, height, step):
+            # 광선의 시작 위치를 카메라 위치로 설정
+            ray_origin = camera_pos
+            # 화면 중심을 기준으로 방향 설정
+            screen_center = np.array([width / 2, height / 2, 0])
+            ray_direction = np.array([x - screen_center[0], y - screen_center[1], 200])  # z축 방향으로 고정
             ray_direction = normalize(ray_direction)
             t = ray_sphere_intersection(ray_origin, ray_direction, sphere_center, sphere_radius)
 
@@ -78,10 +81,8 @@ while running:
                 )
                 screen.set_at((x, y), color)
 
-
     # 화면 업데이트
     pygame.display.flip()
-
 
 # Pygame 종료
 pygame.quit()
