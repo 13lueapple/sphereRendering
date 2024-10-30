@@ -5,7 +5,7 @@ import numpy as np
 pygame.init()
 
 # 화면 설정
-width, height = 800, 600
+width, height = 400, 300
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Simple Sphere Ray Tracing")
 
@@ -13,13 +13,31 @@ pygame.display.set_caption("Simple Sphere Ray Tracing")
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
+BLUE = (0, 0, 255)
 
 # 구 정의
-sphere_center = np.array([400, 300, 0])  # 구의 중심
-sphere_radius = 100  # 구의 반지름
+
+spheres = [
+    {
+        "center": np.array([200, 150, 0]),
+        "radius": 100,
+        "color": RED,
+    },
+    {
+        "center": np.array([150, 100, 100]),
+        "radius": 70,
+        "color": BLUE,
+    },
+    {
+        "center": np.array([270, 200, -100]),
+        "radius": 80,
+        "color": WHITE,
+    }
+    
+]
 
 # 조명 설정
-light_pos = np.array([200, 100, -100])  # 광원 위치
+light_pos = np.array([200, 100, -200])  # 광원 위치
 
 # 벡터 정규화 함수 (normalize)
 def normalize(v):
@@ -45,7 +63,9 @@ def ray_sphere_intersection(ray_origin, ray_direction, sphere_center, sphere_rad
 
 # 메인 루프
 running = True
+clock = pygame.time.Clock()
 while running:
+    clock.tick(10)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -56,27 +76,28 @@ while running:
     light_pos = np.array([mouse_x, mouse_y, -110])  # 광원의 z 위치 고정
 
     # 각 픽셀에 대해 레이 캐스팅
-    step = 4 # 픽셀 간격 (높일수록 해상도 줄고 속도 빨라짐)
+    step = 1 # 픽셀 간격 (높일수록 해상도 줄고 속도 빨라짐)
 
-    for x in range(width//2 - sphere_radius, width//2 + sphere_radius, step):
-        for y in range(height//2 - sphere_radius, height//2 + sphere_radius, step):
+    for x in range(0, width, step):
+        for y in range(0, height, step):
             # 나머지 코드는 동일
             ray_origin = np.array([x, y, -200])
             ray_direction = np.array([0, 0, 1])
             ray_direction = normalize(ray_direction)
-            t = ray_sphere_intersection(ray_origin, ray_direction, sphere_center, sphere_radius)
+            for sphere in spheres:
+                t = ray_sphere_intersection(ray_origin, ray_direction, sphere["center"], sphere["radius"])
 
-            if t is not None:
-                hit_point = ray_origin + t * ray_direction
-                normal = normalize(hit_point - sphere_center)
-                light_dir = normalize(light_pos - hit_point)
-                brightness = max(np.dot(normal, light_dir), 0)
-                color = (
-                    int(RED[0] * brightness),
-                    int(RED[1] * brightness),
-                    int(RED[2] * brightness),
-                )
-                screen.set_at((x, y), color)
+                if t is not None:
+                    hit_point = ray_origin + t * ray_direction
+                    normal = normalize(hit_point - sphere["center"])
+                    light_dir = normalize(light_pos - hit_point)
+                    brightness = max(np.dot(normal, light_dir), 0)
+                    color = (
+                        int(sphere["color"][0] * brightness),
+                        int(sphere["color"][1] * brightness),
+                        int(sphere["color"][2] * brightness),
+                    )
+                    screen.set_at((x, y), color)
 
 
     # 화면 업데이트
