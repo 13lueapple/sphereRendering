@@ -76,7 +76,7 @@ while running:
     light_pos = np.array([mouse_x, mouse_y, -110])  # 광원의 z 위치 고정
 
     # 각 픽셀에 대해 레이 캐스팅
-    step = 1 # 픽셀 간격 (높일수록 해상도 줄고 속도 빨라짐)
+    step = 4 # 픽셀 간격 (높일수록 해상도 줄고 속도 빨라짐)
 
     for x in range(0, width, step):
         for y in range(0, height, step):
@@ -97,12 +97,12 @@ while running:
                         int(sphere["color"][1] * brightness),
                         int(sphere["color"][2] * brightness),
                     )
-                    screen.set_at((x, y), color)
+                    # screen.set_at((x, y), color)
+                    pygame.draw.circle(screen, color, (x,y), 3)
 
 
     # 화면 업데이트
-    pygame.display.flip()
-
+    pygame.display.update()
 
 # Pygame 종료
 pygame.quit()
